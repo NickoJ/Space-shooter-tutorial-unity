@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
 		float moveVertical = Input.GetAxis ("Vertical");
 
 		var movement = new Vector3(moveHorizontal, 0f, moveVertical);
-		body.velocity = movement.normalized * speed * Time.deltaTime;
+		body.velocity = movement * speed * Time.deltaTime;
 
 		body.position = new Vector3 (
 			Mathf.Clamp(body.position.x, boundary.xMin, boundary.xMax),
