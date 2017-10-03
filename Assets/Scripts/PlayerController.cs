@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(AudioSource))]
 public class PlayerController : MonoBehaviour
 {
 
@@ -15,11 +15,13 @@ public class PlayerController : MonoBehaviour
 	public float fireRate;
 
 	Rigidbody body;
+	AudioSource audioSource;
 	float nextFire;
 
 	void Awake()
 	{
 		body = GetComponent<Rigidbody> ();
+		audioSource = GetComponent<AudioSource> ();
 	}
 
 	void Update()
@@ -28,6 +30,7 @@ public class PlayerController : MonoBehaviour
 		{
 			nextFire = Time.time + fireRate;
 			Instantiate (shot, shotSpawn.position, shotSpawn.rotation);
+			audioSource.Play ();
 		}
 	}
 
