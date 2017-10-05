@@ -14,7 +14,7 @@ public class Mover : MonoBehaviour
 
 	void Start()
 	{
-		body.velocity = transform.forward * speed * Time.deltaTime;
+		body.velocity = transform.forward * speed;
 	}
 
 }	
