@@ -17,6 +17,7 @@ public class GameController : MonoBehaviour
 	public Text scoreText;
 	public Text restartText;
 	public Text gameOverText;
+	public Button restartButton;
 
 	private int score;
 	private bool gameover;
@@ -28,17 +29,25 @@ public class GameController : MonoBehaviour
 		gameover = false;
 		restart = false;
 		restartText.text = gameOverText.text = string.Empty;
+		restartButton.gameObject.SetActive (false);
+		restartButton.onClick.AddListener (OnRestartClicked);
 		UpdateScore ();
 		StartCoroutine (SpawnWaves ());
 	}
 
+	#if !UNITY_ANDROID && !UNITY_IOS
+
 	void Update()
 	{
-		if (!restart) return;
-		if (Input.GetKeyDown (KeyCode.R)) 
-		{
-			SceneManager.LoadScene(SceneManager.GetActiveScene ().name);
-		}
+		if (!restart && Application.isMobilePlatform) return;
+		if (Input.GetKeyDown (KeyCode.R)) Restart ();
+	}
+
+	#endif
+
+	void Restart()
+	{
+		SceneManager.LoadScene(SceneManager.GetActiveScene ().name);
 	}
 
 	public void AddScore(int value)
@@ -51,6 +60,12 @@ public class GameController : MonoBehaviour
 	{
 		gameOverText.text = "Game Over!";
 		gameover = true;
+	}
+
+	void OnRestartClicked()
+	{
+		if (!restart) return;
+		Restart ();
 	}
 
 	IEnumerator SpawnWaves()
@@ -70,10 +85,20 @@ public class GameController : MonoBehaviour
 
 			if (gameover) 
 			{
-				restartText.text = "Press 'R' for restart";
-				restart = true;
+				ActivateRestart ();
 			}
 		}
+	}
+
+	void ActivateRestart()
+	{
+		#if UNITY_ANDROID || UNITY_IOS
+		restartButton.gameObject.SetActive (true);
+		#else
+		restartText.text = "Press 'R' for restart";
+		#endif
+
+		restart = true;
 	}
 
 	void UpdateScore()

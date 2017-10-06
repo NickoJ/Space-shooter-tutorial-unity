@@ -10,6 +10,9 @@ public class PlayerController : MonoBehaviour
 	public float tilt;
 	public Boundary boundary;
 
+	public TouchPad touchPad;
+	public TouchArea touchArea;
+
 	public GameObject shot;
 	public Transform shotSpawn;
 	public float fireRate;
@@ -24,9 +27,14 @@ public class PlayerController : MonoBehaviour
 		audioSource = GetComponent<AudioSource> ();
 	}
 
+	void Start()
+	{
+		Prepare ();
+	}
+
 	void Update()
 	{
-		if (Input.GetButton ("Fire1") && Time.time > nextFire) 
+		if (CanFire() && Time.time > nextFire) 
 		{
 			nextFire = Time.time + fireRate;
 			Instantiate (shot, shotSpawn.position, shotSpawn.rotation);
@@ -36,10 +44,9 @@ public class PlayerController : MonoBehaviour
 
 	void FixedUpdate()
 	{
-		float moveHorizontal = Input.GetAxis ("Horizontal");
-		float moveVertical = Input.GetAxis ("Vertical");
+		Vector2 move = GetMove ();
 
-		var movement = new Vector3(moveHorizontal, 0f, moveVertical);
+		var movement = new Vector3(move.x, 0f, move.y);
 		body.velocity = movement * speed;
 
 		body.position = new Vector3 (
@@ -49,5 +56,67 @@ public class PlayerController : MonoBehaviour
 		);
 		body.rotation = Quaternion.Euler (0f, 0f, body.velocity.x * -tilt);
 	}
+
+	#if UNITY_ANDROID || UNITY_IOS
+
+	private Quaternion calibrationQuaternion;
+
+	void Prepare()
+	{
+		CalibrateAccelerometer ();
+	}
+
+	bool CanFire()
+	{
+		return touchArea.CanFire ();
+	}
+
+	void CalibrateAccelerometer()
+	{
+		Vector3 accelerationSnapshot = Input.acceleration;
+		Quaternion rotateQuaternion = Quaternion.FromToRotation (new Vector3 (0.0f, 0.0f, -1.0f), accelerationSnapshot);
+		calibrationQuaternion = Quaternion.Inverse (rotateQuaternion);
+	}
+
+	Vector3 FixAcceleration(Vector3 acceleration)
+	{
+		Vector3 fixedAcceleration = calibrationQuaternion * acceleration;
+		return fixedAcceleration;
+	}
+
+	Vector2 GetMove()
+	{
+		if (touchPad != null) return GetTouchPadMove ();
+		else return GetAcceleratorMove ();
+	}
+
+	Vector2 GetTouchPadMove()
+	{
+		return touchPad.GetDirection ();
+	}
+
+	Vector2 GetAcceleratorMove()
+	{
+		return FixAcceleration (Input.acceleration);
+	}
+
+	#else
+
+	void Prepare()
+	{
+		
+	}
+
+	bool CanFire()
+	{
+		return Input.GetButton ("Fire1");
+	}
+
+	Vector2 GetMove()
+	{
+		return new Vector2 (Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+	}
+
+	#endif
 
 }
